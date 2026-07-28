@@ -1,0 +1,40 @@
+sources:
+  - name: exchange_rates
+    enabled: true
+    worksheet: "Курси валют"
+    mode: append
+    params:
+      base_currency: USD
+      target_currencies: [EUR, UAH, GBP, PLN, CHF, JPY]
+
+  - name: weather
+    enabled: true
+    worksheet: "Погода"
+    mode: append
+    params:
+      cities:
+        - name: "Kyiv"
+          lat: 50.4501
+          lon: 30.5234
+        - name: "Rivne"
+          lat: 50.6199
+          lon: 26.2516
+        - name: "Lviv"
+          lat: 49.8397
+          lon: 24.0297
+        - name: "Odesa"
+          lat: 46.4825
+          lon: 30.7233
+        - name: "Kharkiv"
+          lat: 49.9935
+          lon: 36.2304
+
+  - name: price_scraper
+    enabled: false
+    worksheet: "Ціни конкурентів"
+    mode: replace
+    params:
+      products:
+        - name: "Example Product"
+          url: "https://example.com/product"
+          selector: "span.price"
