@@ -1,37 +1,51 @@
+dashboard: true
+
 sources:
   - name: exchange_rates
     enabled: true
-    worksheet: "Курси валют"
+    worksheet: "Exchange Rates"
     mode: append
     params:
       base_currency: USD
-      target_currencies: [EUR, UAH, GBP, PLN, CHF, JPY]
+      target_currencies: [EUR, UAH, GBP, PLN, CHF, JPY, CAD, AUD, CNY, SEK,
+                          NOK, DKK, CZK, HUF, RON, TRY, INR, BRL, MXN, KRW,
+                          SGD, HKD, NZD, ZAR, ILS, AED, SAR, EGP, GEL, MDL]
 
   - name: weather
     enabled: true
-    worksheet: "Погода"
+    worksheet: "Weather"
     mode: append
     params:
       cities:
-        - name: "Kyiv"
-          lat: 50.4501
-          lon: 30.5234
-        - name: "Rivne"
-          lat: 50.6199
-          lon: 26.2516
-        - name: "Lviv"
-          lat: 49.8397
-          lon: 24.0297
-        - name: "Odesa"
-          lat: 46.4825
-          lon: 30.7233
-        - name: "Kharkiv"
-          lat: 49.9935
-          lon: 36.2304
+        - {name: "Kyiv",        lat: 50.4501, lon: 30.5234}
+        - {name: "Rivne",       lat: 50.6199, lon: 26.2516}
+        - {name: "Lviv",        lat: 49.8397, lon: 24.0297}
+        - {name: "Odesa",       lat: 46.4825, lon: 30.7233}
+        - {name: "Kharkiv",     lat: 49.9935, lon: 36.2304}
+        - {name: "Dnipro",      lat: 48.4647, lon: 35.0462}
+        - {name: "Zaporizhzhia", lat: 47.8388, lon: 35.1396}
+        - {name: "Vinnytsia",   lat: 49.2331, lon: 28.4682}
+        - {name: "Warsaw",      lat: 52.2297, lon: 21.0122}
+        - {name: "Krakow",      lat: 50.0647, lon: 19.9450}
+        - {name: "Berlin",      lat: 52.5200, lon: 13.4050}
+        - {name: "Prague",      lat: 50.0755, lon: 14.4378}
+        - {name: "Vienna",      lat: 48.2082, lon: 16.3738}
+        - {name: "Amsterdam",   lat: 52.3676, lon: 4.9041}
+        - {name: "London",      lat: 51.5074, lon: -0.1278}
+        - {name: "Paris",       lat: 48.8566, lon: 2.3522}
+        - {name: "Madrid",      lat: 40.4168, lon: -3.7038}
+        - {name: "Rome",        lat: 41.9028, lon: 12.4964}
+        - {name: "Lisbon",      lat: 38.7223, lon: -9.1393}
+        - {name: "Stockholm",   lat: 59.3293, lon: 18.0686}
+        - {name: "Helsinki",    lat: 60.1699, lon: 24.9384}
+        - {name: "Tallinn",     lat: 59.4370, lon: 24.7536}
+        - {name: "New York",    lat: 40.7128, lon: -74.0060}
+        - {name: "Tokyo",       lat: 35.6762, lon: 139.6503}
+        - {name: "Dubai",       lat: 25.2048, lon: 55.2708}
 
   - name: price_scraper
     enabled: false
-    worksheet: "Ціни конкурентів"
+    worksheet: "Competitor Prices"
     mode: replace
     params:
       products:

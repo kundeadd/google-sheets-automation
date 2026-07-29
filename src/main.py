@@ -1,9 +1,11 @@
-"""Точка входу: читає config.yaml, тягне дані з увімкнених джерел,
-пише в Google Sheets. Запускати вручну або за розкладом (cron/systemd timer).
+"""Entry point: reads config.yaml, pulls data from enabled sources,
+writes it to Google Sheets and updates the dashboard.
+Run manually or on a schedule (Task Scheduler, cron, systemd timer).
 """
 import logging
 import os
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import yaml
@@ -35,38 +37,73 @@ def main():
     creds_path = os.environ.get("GOOGLE_CREDENTIALS_PATH", "credentials.json")
 
     if not sheet_id:
-        logger.error("GOOGLE_SHEET_ID не задано в .env")
+        logger.error("GOOGLE_SHEET_ID is not set in .env")
         sys.exit(1)
     if not Path(creds_path).exists():
-        logger.error("Credentials файл не знайдено: %s", creds_path)
+        logger.error("Credentials file not found: %s", creds_path)
         sys.exit(1)
 
     config = load_config()
     client = SheetsClient(credentials_path=creds_path, sheet_id=sheet_id)
 
+    stats = []
+    samples = {}
+
     for source_conf in config.get("sources", []):
         name = source_conf["name"]
+        worksheet = source_conf.get("worksheet", name)
+        mode = source_conf.get("mode", "append")
+
         if not source_conf.get("enabled", True):
-            logger.info("Пропускаю вимкнене джерело: %s", name)
+            logger.info("Skipping disabled source: %s", name)
+            stats.append({
+                "source": name, "worksheet": worksheet, "mode": mode,
+                "status": "DISABLED", "rows": 0, "finished": "",
+            })
             continue
 
         source_cls = SOURCE_REGISTRY.get(name)
         if not source_cls:
-            logger.warning("Невідоме джерело в config.yaml: %s", name)
+            logger.warning("Unknown source in config.yaml: %s", name)
+            stats.append({
+                "source": name, "worksheet": worksheet, "mode": mode,
+                "status": "ERROR", "rows": 0,
+                "finished": datetime.now().strftime("%H:%M:%S"),
+            })
             continue
 
         try:
             source = source_cls(source_conf.get("params", {}))
             rows = source.fetch_with_timestamp()
-            client.write_rows(
-                worksheet_title=source_conf.get("worksheet", name),
+            samples[name] = rows
+            written = client.write_rows(
+                worksheet_title=worksheet,
                 rows=rows,
-                mode=source_conf.get("mode", "append"),
+                mode=mode,
             )
+            stats.append({
+                "source": name, "worksheet": worksheet, "mode": mode,
+                "status": "OK", "rows": written,
+                "finished": datetime.now().strftime("%H:%M:%S"),
+            })
         except Exception:
-            logger.exception("Помилка при обробці джерела '%s'", name)
+            logger.exception("Failed to process source '%s'", name)
+            stats.append({
+                "source": name, "worksheet": worksheet, "mode": mode,
+                "status": "ERROR", "rows": 0,
+                "finished": datetime.now().strftime("%H:%M:%S"),
+            })
 
-    logger.info("Синхронізація завершена")
+    if config.get("dashboard", True):
+        try:
+            client.write_dashboard(stats, samples)
+        except Exception:
+            logger.exception("Failed to update dashboard")
+
+    ok = sum(1 for s in stats if s["status"] == "OK")
+    total = sum(s["rows"] for s in stats)
+    logger.info("Sync finished: %d/%d sources ok, %d rows written",
+                ok, len(stats), total)
 
 
 if __name__ == "__main__":
